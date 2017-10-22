@@ -2,7 +2,7 @@
 This is the only file you should change in your submission!
 """
 from basicplayer import basic_evaluate, minimax, get_all_next_moves, is_terminal
-from util import memoize, run_search_function
+from util import memoize, run_search_function, INFINITY, NEG_INFINITY
 
 
 # TODO Uncomment and fill in your information here. Think of a creative name that's relatively unique.
@@ -26,16 +26,6 @@ def focused_evaluate(board):
     """
 
     score = basic_evaluate(board);
-    current_player_longest_chain = board.longest_chain(board.get_current_player_id())
-    other_player_longest_chain = board.longest_chain(board.get_other_player_id())
-
-    #check if player has a chain of 4
-    if current_player_longest_chain >= 4:
-      return 996 + current_player_longest_chain
-
-    #check if opposing player has a chain of 4
-    if other_player_longest_chain >= 4:
-      return -996 - other_player_longest_chain
 
     #check if neither
     return score
@@ -47,6 +37,41 @@ def focused_evaluate(board):
 # You can test this player by choosing 'quick' in the main program.
 quick_to_win_player = lambda board: minimax(board, depth=4,
                                             eval_fn=focused_evaluate)
+
+def alpha_beta_search_value(board, depth, eval_fn, 
+                      alpha, beta, maxormin,
+                      get_next_moves_fn=get_all_next_moves,
+                      is_terminal_fn=is_terminal,
+                      verbose=True):
+
+    if is_terminal_fn(depth, board):
+        return eval_fn(board)
+    if maxormin > 0:
+      val = NEG_INFINITY
+      for move, new_board in get_next_moves_fn(board):
+        temp_val = -1 * alpha_beta_search_value(new_board, depth - 1, eval_fn, alpha, beta, -1)
+        if temp_val > val:
+          val = temp_val
+        if val > alpha:
+          alpha = val
+        if alpha >= -beta:
+          #print("break")
+          break
+      return val
+    else:
+      val = NEG_INFINITY
+      for move, new_board in get_next_moves_fn(board):
+        temp_val = -1 * alpha_beta_search_value(new_board, depth - 1, eval_fn, alpha, beta, 1)
+        if temp_val > val:
+          val = temp_val
+        if val > beta:
+          beta = val
+        if alpha >= -beta:
+          #print("break")
+          break
+      return val
+
+    #return minimax(board, depth, eval_fn, get_next_moves_fn, is_terminal_fn, verbose=True)
 
 
 # TODO Write an alpha-beta-search procedure that acts like the minimax-search
@@ -80,14 +105,30 @@ def alpha_beta_search(board, depth,
        is a function that checks whether to statically evaluate
        a board/node (hence terminating a search branch).
     """
-    return minimax(board, depth, eval_fn, get_next_moves_fn, is_terminal_fn, verbose=True)
+
+    #return minimax(board, depth, eval_fn, get_next_moves_fn, is_terminal_fn, verbose=True)
+
+    return_tuple = None
+    alpha = NEG_INFINITY
+    beta = NEG_INFINITY
+    for move, new_board in get_next_moves_fn(board):
+      val = -1 * alpha_beta_search_value(new_board, depth -1, eval_fn, alpha, beta, -1, get_next_moves_fn, is_terminal_fn)
+      if alpha < val:
+        alpha = val
+        return_tuple = (val, move, new_board)
+
+    print("ALPHA_BETA: Decided on column {} with rating {}".format(return_tuple[1], return_tuple[0]))
+
+    return return_tuple[1]
+
     #raise NotImplementedError
 
 
 # Now you should be able to search twice as deep in the same amount of time.
 # (Of course, this alpha-beta-player won't work until you've defined alpha_beta_search.)
 def alpha_beta_player(board):
-    return alpha_beta_search(board, depth=8, eval_fn=focused_evaluate)
+    return alpha_beta_search(board, depth=4, eval_fn=focused_evaluate)
+    #return run_search_function(board, search_fn=alpha_beta_search, eval_fn=focused_evaluate, timeout=5)
 
 
 # This player uses progressive deepening, so it can kick your ass while
@@ -112,6 +153,6 @@ better_evaluate = memoize(basic_evaluate)
 
 # A player that uses alpha-beta and better_evaluate:
 def my_player(board):
-    return run_search_function(board, search_fn=alpha_beta_search, eval_fn=focused_evaluate, timeout=5)
+    return run_search_function(board, search_fn=alpha_beta_search, eval_fn=better_evaluate, timeout=5)
 
 # my_player = lambda board: alpha_beta_search(board, depth=4, eval_fn=better_evaluate)
