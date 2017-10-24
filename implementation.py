@@ -3,15 +3,15 @@ This is the only file you should change in your submission!
 """
 from basicplayer import basic_evaluate, minimax, get_all_next_moves, is_terminal
 from util import memoize, run_search_function, INFINITY, NEG_INFINITY
-
+import random
 
 # TODO Uncomment and fill in your information here. Think of a creative name that's relatively unique.
 # We may compete your agent against your classmates' agents as an experiment (not for marks).
 # Are you interested in participating if this competition? Set COMPETE=TRUE if yes.
 
-# STUDENT_ID = 20526389
-# AGENT_NAME = Sharkbird
-# COMPETE = False
+STUDENT_ID = 20526389
+AGENT_NAME = "Sharkbird"
+COMPETE = True
 
 # TODO Change this evaluation function so that it tries to win as soon as possible
 # or lose as late as possible, when it decides that one side is certain to win.
@@ -127,13 +127,18 @@ def ab_iterative_player(board):
 # simple-evaluate (or focused-evaluate) while searching to the same depth.
 
 def better_evaluate(board):
-    raise NotImplementedError
+    score = focused_evaluate(board);
+    if board.is_game_over() == False:
+      if random.random() <= 0.50:
+        score += random.randrange(-1000, 1000)
+
+    return score
 
 # Comment this line after you've fully implemented better_evaluate
-better_evaluate = memoize(basic_evaluate)
+#better_evaluate = memoize(basic_evaluate)
 
 # Uncomment this line to make your better_evaluate run faster.
-# better_evaluate = memoize(better_evaluate)
+better_evaluate = memoize(better_evaluate)
 
 
 # A player that uses alpha-beta and better_evaluate:
