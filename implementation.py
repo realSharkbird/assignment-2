@@ -40,6 +40,27 @@ def focused_evaluate(board):
 quick_to_win_player = lambda board: minimax(board, depth=4,
                                             eval_fn=focused_evaluate)
 
+def alpha_beta_search_value(board, depth, eval_fn, 
+                      alpha, beta,
+                      get_next_moves_fn,
+                      is_terminal_fn,
+                      verbose=True):
+
+    if is_terminal_fn(depth, board):
+        return eval_fn(board)
+    val = NEG_INFINITY
+    for move, new_board in get_next_moves_fn(board):
+      temp_val = -1 * alpha_beta_search_value(new_board, depth - 1, eval_fn, beta, alpha, get_next_moves_fn, is_terminal_fn)
+      if temp_val > val:
+        val = temp_val
+      if val > alpha:
+        alpha = val
+      if alpha >= -beta:
+        break
+    return val
+
+    #return minimax(board, depth, eval_fn, get_next_moves_fn, is_terminal_fn, verbose=True)
+
 # TODO Write an alpha-beta-search procedure that acts like the minimax-search
 # procedure, but uses alpha-beta pruning to avoid searching bad ideas
 # that can't improve the result. The tester will check your pruning by
@@ -71,27 +92,6 @@ def alpha_beta_search(board, depth,
        is a function that checks whether to statically evaluate
        a board/node (hence terminating a search branch).
     """
-
-    #return minimax(board, depth, eval_fn, get_next_moves_fn, is_terminal_fn, verbose=True)
-
-    def alpha_beta_search_value(board, depth, eval_fn, 
-                      alpha, beta,
-                      get_next_moves_fn=get_all_next_moves,
-                      is_terminal_fn=is_terminal,
-                      verbose=True):
-
-        if is_terminal_fn(depth, board):
-            return eval_fn(board)
-        val = NEG_INFINITY
-        for move, new_board in get_next_moves_fn(board):
-          temp_val = -1 * alpha_beta_search_value(new_board, depth - 1, eval_fn, beta, alpha)
-          if temp_val > val:
-            val = temp_val
-          if val > alpha:
-            alpha = val
-          if alpha >= -beta:
-            break
-        return val
 
     return_tuple = None
     alpha = NEG_INFINITY
